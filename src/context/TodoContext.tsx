@@ -20,7 +20,6 @@ interface ITodoContext {
   setErrorMessage: React.Dispatch<React.SetStateAction<string>>;
   alwaysGreenTodos: Todo[];
   setAlwaysGreenTodos: React.Dispatch<React.SetStateAction<Todo[]>>;
-  // handleTodoTitle: (id: number) => void;
 }
 
 export const TodoContext = createContext<ITodoContext>({
@@ -69,7 +68,6 @@ export const TodoProvider = ({ children }: { children: ReactNode }) => {
 
     setTodos(todosWhichAreRendered);
     setAlwaysGreenTodos(updated);
-    // setEditedTitle(todo.title);
   };
 
   const handleCompleted = async (id: number) => {
@@ -142,7 +140,6 @@ export const TodoProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // eslint-disable-next-line @typescript-eslint/comma-dangle
   const findIndexes = <N,>(
     arr: N[],
     cb: (currentValue: N, index?: number, arr?: N[]) => boolean,
@@ -159,10 +156,7 @@ export const TodoProvider = ({ children }: { children: ReactNode }) => {
 
     return newArray;
   };
-
-  // console.log(
-  //   findIndexes(alwaysGreenTodos, (currentValue) => currentValue.completed),
-  // );
+ 
 
   const clearCompleted = async () => {
     const indexes = findIndexes(
@@ -181,8 +175,6 @@ export const TodoProvider = ({ children }: { children: ReactNode }) => {
     });
 
     await Promise.all(indexes.map((current) => removeTodo(todos[current].id)));
-
-    // console.log(indexes);
 
     const updatedTodos = alwaysGreenTodos.filter(({ completed }) => !completed);
 

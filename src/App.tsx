@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-shadow */
-/* eslint-disable jsx-a11y/control-has-associated-label */
 
 import React, { useContext, useEffect } from 'react';
 import { NewTodo } from './components/NewTodo';
@@ -28,9 +26,6 @@ export const App: React.FC = () => {
     return <UserWarning />;
   }
 
-  // eslint-disable-next-line react-hooks/rules-of-hooks
-
-  // eslint-disable-next-line react-hooks/rules-of-hooks
   useEffect(() => {
     gainTodos();
   }, []);

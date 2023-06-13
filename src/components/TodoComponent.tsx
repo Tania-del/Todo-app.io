@@ -1,6 +1,3 @@
-/* eslint-disable jsx-a11y/no-static-element-interactions */
-/* eslint-disable jsx-a11y/no-noninteractive-element-interactions */
-/* eslint-disable jsx-a11y/click-events-have-key-events */
 import {
   useContext, useEffect, useRef, useState,
 } from 'react';
@@ -37,7 +34,6 @@ export const TodoComponent: React.FC<TodoType> = ({ todo }) => {
     setEditedTitle(target.value);
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-shadow
   const swapTodoInArray = (array: Todo[], todo: Todo) => {
     return array.map((item) => {
       return item.id === todo.id ? todo : item;
