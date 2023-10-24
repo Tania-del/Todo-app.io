@@ -13,7 +13,7 @@ export const TodoComponent: React.FC<TodoType> = ({ todo }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editedTitle, setEditedTitle] = useState(todo.title);
   const inputRef = useRef<HTMLInputElement>(null);
-
+  
   const {
     deleteTodo,
     handleCompleted,
@@ -34,11 +34,11 @@ export const TodoComponent: React.FC<TodoType> = ({ todo }) => {
     setEditedTitle(target.value);
   };
 
-  const swapTodoInArray = (array: Todo[], todo: Todo) => {
-    return array.map((item) => {
-      return item.id === todo.id ? todo : item;
-    });
-  };
+  // const swapTodoInArray = (array: Todo[], todo: Todo) => {
+  //   return array.map((item) => {
+  //     return item.id === todo.id ? todo : item;
+  //   });
+  // };
 
   const handleFormSubmit = async (e: React.FormEvent<HTMLFormElement> |
   React.FocusEvent<HTMLInputElement, Element>) => {
@@ -49,9 +49,9 @@ export const TodoComponent: React.FC<TodoType> = ({ todo }) => {
     try {
       const copyTodo = { ...todo, title: editedTitle };
 
-      if (editedTitle === '') {
-        deleteTodo(todo.id);
-      }
+      // if (editedTitle === '') {
+      //   deleteTodo(todo.id);
+      // }
 
       if (todo.title !== editedTitle && editedTitle) {
         const withLoading = swapTodoInArray(alwaysGreenTodos, {
@@ -94,13 +94,16 @@ export const TodoComponent: React.FC<TodoType> = ({ todo }) => {
     }
   }, [isEditing]);
 
+
+
+
   return (
     <div className={`todo ${todo.completed ? 'completed' : ''}`}>
       <label
         className="todo__status-label"
         onClick={(e) => {
           if (e.target === e.currentTarget) {
-            handleCompleted(todo.id);
+            handleCompleted(todo.todoId);
           }
         }}
       >
@@ -131,7 +134,8 @@ export const TodoComponent: React.FC<TodoType> = ({ todo }) => {
         <button
           onClick={(e) => {
             e.preventDefault();
-            deleteTodo(todo.id);
+            deleteTodo(todo.todoId);
+            // deleteTodo()
           }}
           type="button"
           className="todo__remove"

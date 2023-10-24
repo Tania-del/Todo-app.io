@@ -1,18 +1,16 @@
-
-import React, { useContext, useEffect } from 'react';
+import React, { useContext } from 'react';
 import { NewTodo } from './components/NewTodo';
 import { TodoList } from './components/TodoList';
 import { TodoContext } from './context/TodoContext';
-// import { Todo } from './types/Todo';
-import { UserWarning } from './UserWarning';
+import { clsx } from 'clsx';
 
-// import classNames from 'classnames';
-
-const USER_ID = 10535;
 
 export const App: React.FC = () => {
+  const { toggled, setToggle } = useContext(TodoContext)
+  
+
   const {
-    gainTodos,
+    // gainTodos,
     total,
     handleFilter,
     errorMessage,
@@ -20,16 +18,19 @@ export const App: React.FC = () => {
     filter,
     isAnyCompleted,
     clearCompleted,
+    // todos,
   } = useContext(TodoContext);
 
-  if (!USER_ID) {
-    return <UserWarning />;
-  }
+  // if (!USER_ID) {
+  //   return <UserWarning />;
+  // }
 
-  useEffect(() => {
-    gainTodos();
-  }, []);
-
+  // useEffect(() => {
+  //   gainTodos();
+  // }, []);
+  
+  // console.log(state);
+  
   return (
     <div className={`todoapp ${errorMessage ? 'has-error' : ''}`}>
       <h1 className="todoapp__title">todos</h1>
@@ -37,12 +38,21 @@ export const App: React.FC = () => {
       <div className="todoapp__content">
         <header className="todoapp__header">
           {/* this buttons is active only if there are some active todos */}
-          <button type="button" className="todoapp__toggle-all active" />
+          <button
+            type="button"
+            className={clsx('todoapp__toggle-all',
+              toggled ? 'active' : '')}
+            onClick={() => {
 
+              setToggle((prev) => !prev)
+            }}
+          />
+          
           {/* Add a todo on form submit */}
           <NewTodo />
         </header>
-        <TodoList />
+        {toggled  &&  <TodoList />}
+       
 
         {/* Hide the footer if there are no todos */}
         <footer className="todoapp__footer">

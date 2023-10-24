@@ -1,9 +1,5 @@
 export interface Todo {
-  id: number;
-  userId: number;
+  todoId: string;
   title: string;
   completed: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-  loading?: boolean
 }

@@ -1,16 +1,17 @@
-import { createContext, ReactNode, useState } from 'react';
-import { getTodos, removeTodo, updateTodo } from '../api/todos';
+import { createContext, ReactNode } from 'react';
+// import { getTodos, removeTodo, updateTodo } from '../api/todos';
 import { Todo } from '../types/Todo';
-
-const USER_ID = 10535;
+import { TSetValue, useLocaleStorage } from '../hooks/useLocaleStorage';
 
 interface ITodoContext {
   todos: Todo[];
+  toggled: boolean;
+  setToggle: TSetValue<boolean>;
   setTodos: React.Dispatch<React.SetStateAction<Todo[]>>;
   gainTodos: () => Promise<void>;
-  deleteTodo: (id: number) => Promise<void>;
+  deleteTodo: (id: Todo['todoId']) => void;
   total: number;
-  handleCompleted: (id: number) => void;
+  handleCompleted:  (id: Todo['todoId']) => void
   handleFilter: (type: FilterType) => void;
   filter: FilterType;
   isAnyCompleted: boolean;
@@ -37,7 +38,9 @@ export const TodoContext = createContext<ITodoContext>({
   errorMessage: '',
   setErrorMessage: () => {},
   alwaysGreenTodos: [],
-  setAlwaysGreenTodos: () => {},
+  setAlwaysGreenTodos: () => { },
+  toggled: false,
+  setToggle: () => {},
 });
 
 type FilterType = 'all' | 'completed' | 'active';
@@ -51,156 +54,177 @@ export const handleActions = (values: Todo[], type: FilterType) => {
   return actions[type];
 };
 
-const getTodoIndex = (values: Todo[], todoId: number) => {
-  return values.findIndex(({ id }) => todoId === id);
-};
+// const getTodoIndex = (values: Todo[], todoId: number) => {
+//   return values.findIndex(({ id }) => id === todoId);
+// };
 
 export const TodoProvider = ({ children }: { children: ReactNode }) => {
-  const [errorMessage, setErrorMessage] = useState('');
-  const [todos, setTodos] = useState<Todo[]>([]);
-  const [alwaysGreenTodos, setAlwaysGreenTodos] = useState<Todo[]>([]);
-  const [filter, setFilter] = useState<FilterType>('all');
+  // const [errorMessage, setErrorMessage] = useState('');
 
-  const handleAddTodo = (todo: Todo) => {
-    const updated = [...alwaysGreenTodos, todo];
+  const [todos, setTodos] = useLocaleStorage<Todo[]>('todos', [])
+  const [toggled, setToggle] = useLocaleStorage('toggle', true);
 
-    const todosWhichAreRendered = handleActions(updated, filter);
+  
+  const deleteTodo = (id: Todo['todoId']) => {
+    setTodos((todos) => todos.filter((item) => item.todoId !== id))
+  }
 
-    setTodos(todosWhichAreRendered);
-    setAlwaysGreenTodos(updated);
-  };
-
-  const handleCompleted = async (id: number) => {
-    const updatedTodos = alwaysGreenTodos.map((todo) => ({
+  const handleCompleted = (id: Todo['todoId']) => {
+    setTodos((todos) => todos.map((todo) => ({
       ...todo,
-      completed: todo.id === id ? !todo.completed : todo.completed,
-    }));
+      completed: todo.todoId === id ? !todo.completed : todo.completed,
+    })))
+    console.log(id);
+    
+  }
+  // const [alwaysGreenTodos, setAlwaysGreenTodos] = useState<Todo[]>([]);
+  // const [filter, setFilter] = useState<FilterType>('all');
 
-    setAlwaysGreenTodos(updatedTodos);
-    setTodos(handleActions(updatedTodos, filter));
-    const todo = updatedTodos.find((item) => item.id === id);
+  // const handleAddTodo = (todo: Todo) => {
+  //   setTodos(prev => ([...prev, todo]));
 
-    try {
-      if (todo) {
-        await updateTodo(id, todo);
-      }
-    } catch (error) {
-      setErrorMessage('Unable to update a todo');
+  //   const updated = [...alwaysGreenTodos, todo];
 
-      setTimeout(() => {
-        setErrorMessage('');
-      }, 5000);
-    }
-  };
+  //   const todosWhichAreRendered = handleActions(updated, filter);
 
-  const handleFilter = (type: FilterType) => {
-    setFilter(type);
+  //   setTodos(todosWhichAreRendered);
+  //   console.log(todosWhichAreRendered);
+  //   setAlwaysGreenTodos(updated);
+  // };
 
-    const res = handleActions(alwaysGreenTodos, type);
+  // const handleCompleted = async (id: number) => {
+  //   const updatedTodos = alwaysGreenTodos.map((todo) => ({
+  //     ...todo,
+  //     completed: todoId === id ? !todo.completed : todo.completed,
+  //   }));
 
-    setTodos(res);
-  };
+  //   setAlwaysGreenTodos(updatedTodos);
+  //   setTodos(handleActions(updatedTodos, filter));
+  //   const todo = updatedTodos.find((item) => item.todoId === id);
 
-  const gainTodos = async () => {
-    const todosFromServer = await getTodos(USER_ID);
+  //   try {
+  //     if (todo) {
+  //       await updateTodo(id, todo);
+  //     }
+  //   } catch (error) {
+  //     setErrorMessage('Unable to update a todo');
 
-    setTodos(todosFromServer);
-    setAlwaysGreenTodos(todosFromServer);
-  };
+  //     setTimeout(() => {
+  //       setErrorMessage('');
+  //     }, 5000);
+  //   }
+  // };
 
-  const deleteTodo = async (id: number) => {
-    const indexInArray = getTodoIndex(todos, id);
+  // const handleFilter = (type: FilterType) => {
+  //   setFilter(type);
 
-    try {
-      setTodos((prev) => {
-        const values = [...prev];
+  //   const res = handleActions(alwaysGreenTodos, type);
 
-        values[indexInArray].loading = true;
+  //   setTodos(res);
+  // };
 
-        return values;
-      });
-      await removeTodo(id);
-      const updatedTodos = alwaysGreenTodos.filter((todo) => todo.id !== id);
+  // const gainTodos = async () => {
+  //   const todosFromServer = await getTodos(USER_ID);
 
-      setAlwaysGreenTodos(updatedTodos);
-      setTodos(handleActions(updatedTodos, filter));
-    } catch (error) {
-      setErrorMessage('Unable to delete todo');
-      setTodos((prev) => {
-        const values = [...prev];
+  //   setTodos(todosFromServer);
+  //   setAlwaysGreenTodos(todosFromServer);
+  // };
 
-        values[indexInArray].loading = false;
+  // const deleteTodo = async (id: number) => {
+  //   const indexInArray = getTodoIndex(todos, id);
 
-        return values;
-      });
+  //   try {
+  //     setTodos((prev) => {
+  //       const values = [...prev];
 
-      setTimeout(() => {
-        setErrorMessage('');
-      }, 3000);
-    }
-  };
+  //       values[indexInArray].loading = true;
 
-  const findIndexes = <N,>(
-    arr: N[],
-    cb: (currentValue: N, index?: number, arr?: N[]) => boolean,
-  ) => {
-    const newArray: number[] = [];
+  //       return values;
+  //     });
+  //     await removeTodo(id);
+  //     const updatedTodos = alwaysGreenTodos.filter((todo) => todo.id !== id);
 
-    for (let i = 0; i < arr.length; i += 1) {
-      const currentValue = arr[i];
+  //     setAlwaysGreenTodos(updatedTodos);
+  //     setTodos(handleActions(updatedTodos, filter));
+  //   } catch (error) {
+  //     setErrorMessage('Unable to delete todo');
+  //     setTodos((prev) => {
+  //       const values = [...prev];
 
-      if (cb(currentValue, i, arr)) {
-        newArray.push(i);
-      }
-    }
+  //       values[indexInArray].loading = false;
 
-    return newArray;
-  };
+  //       return values;
+  //     });
+
+  //     setTimeout(() => {
+  //       setErrorMessage('');
+  //     }, 3000);
+  //   }
+  // };
+
+  // const findIndexes = <N,>(
+  //   arr: N[],
+  //   cb: (currentValue: N, index?: number, arr?: N[]) => boolean,
+  // ) => {
+  //   const newArray: number[] = [];
+
+  //   for (let i = 0; i < arr.length; i += 1) {
+  //     const currentValue = arr[i];
+
+  //     if (cb(currentValue, i, arr)) {
+  //       newArray.push(i);
+  //     }
+  //   }
+
+  //   return newArray;
+  // };
  
 
-  const clearCompleted = async () => {
-    const indexes = findIndexes(
-      alwaysGreenTodos,
-      (currentValue) => currentValue.completed,
-    );
+  // const clearCompleted = async () => {
+  //   const indexes = findIndexes(
+  //     alwaysGreenTodos,
+  //     (currentValue) => currentValue.completed,
+  //   );
 
-    setTodos((prev) => {
-      const copy = [...prev];
+  //   setTodos((prev) => {
+  //     const copy = [...prev];
 
-      indexes.forEach((current) => {
-        copy[current].loading = true;
-      });
+  //     indexes.forEach((current) => {
+  //       copy[current].loading = true;
+  //     });
 
-      return copy;
-    });
+  //     return copy;
+  //   });
 
-    await Promise.all(indexes.map((current) => removeTodo(todos[current].id)));
+  //   await Promise.all(indexes.map((current) => removeTodo(todos[current].id)));
 
-    const updatedTodos = alwaysGreenTodos.filter(({ completed }) => !completed);
+  //   const updatedTodos = alwaysGreenTodos.filter(({ completed }) => !completed);
 
-    setAlwaysGreenTodos(updatedTodos);
+  //   setAlwaysGreenTodos(updatedTodos);
 
-    setTodos(handleActions(updatedTodos, filter));
-  };
+  //   setTodos(handleActions(updatedTodos, filter));
+  // };
 
   return (
     <TodoContext.Provider
       value={{
-        setErrorMessage,
-        errorMessage,
+        // setErrorMessage,
+        // errorMessage,
         todos,
         setTodos,
-        gainTodos,
+        toggled, 
+        setToggle,
+        // gainTodos,
         deleteTodo,
-        total: alwaysGreenTodos.filter((item) => !item.completed).length,
+        // total: alwaysGreenTodos.filter((item) => !item.completed).length,
         handleCompleted,
-        handleFilter,
-        filter,
-        isAnyCompleted: alwaysGreenTodos.some((item) => item.completed),
-        clearCompleted,
-        handleAddTodo,
-        alwaysGreenTodos,
-        setAlwaysGreenTodos,
+        // handleFilter,
+        // filter,
+        // isAnyCompleted: alwaysGreenTodos.some((item) => item.completed),
+        // clearCompleted,
+        // handleAddTodo,
+        // alwaysGreenTodos,
+        // setAlwaysGreenTodos,
       }}
     >
       {children}
