@@ -4,35 +4,20 @@ import { TodoList } from './components/TodoList';
 import { TodoContext } from './context/TodoContext';
 import { clsx } from 'clsx';
 
-
 export const App: React.FC = () => {
-  const { toggled, setToggle } = useContext(TodoContext)
-  
-
   const {
-    // gainTodos,
+    toggled,
+    setToggle,
     total,
     handleFilter,
-    errorMessage,
-    setErrorMessage,
     filter,
     isAnyCompleted,
     clearCompleted,
-    // todos,
+    todos,
   } = useContext(TodoContext);
 
-  // if (!USER_ID) {
-  //   return <UserWarning />;
-  // }
-
-  // useEffect(() => {
-  //   gainTodos();
-  // }, []);
-  
-  // console.log(state);
-  
   return (
-    <div className={`todoapp ${errorMessage ? 'has-error' : ''}`}>
+    <div className='todoapp'>
       <h1 className="todoapp__title">todos</h1>
 
       <div className="todoapp__content">
@@ -55,6 +40,7 @@ export const App: React.FC = () => {
        
 
         {/* Hide the footer if there are no todos */}
+        {todos.length > 0 && 
         <footer className="todoapp__footer">
           <span className="todo-count">{`${total}  items left`}</span>
 
@@ -97,22 +83,9 @@ export const App: React.FC = () => {
             Clear completed
           </button>
         </footer>
-      </div>
-
-      <div
-        className={`notification is-danger is-light has-text-weight-normal ${
-          errorMessage ? '' : 'hidden'
-        }`}
-      >
-        <button
-          type="button"
-          className="delete"
-          onClick={() => {
-            setErrorMessage('');
-          }}
-        />
-        {errorMessage}
+        }
       </div>
     </div>
+    
   );
 };

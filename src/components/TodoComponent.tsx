@@ -1,8 +1,7 @@
 import {
-  useContext, useEffect, useRef, useState,
+  useContext, useState, useRef
 } from 'react';
-import { updateTodo } from '../api/todos';
-import { handleActions, TodoContext } from '../context/TodoContext';
+import { TodoContext } from '../context/TodoContext';
 import { Todo } from '../types/Todo';
 
 type TodoType = {
@@ -11,76 +10,25 @@ type TodoType = {
 
 export const TodoComponent: React.FC<TodoType> = ({ todo }) => {
   const [isEditing, setIsEditing] = useState(false);
-  const [editedTitle, setEditedTitle] = useState(todo.title);
-  const inputRef = useRef<HTMLInputElement>(null);
   
   const {
-    deleteTodo,
     handleCompleted,
-    setErrorMessage,
-    filter,
+    deleteTodo,
     setTodos,
-    setAlwaysGreenTodos,
-    alwaysGreenTodos,
   } = useContext(TodoContext);
 
-  const handleDoubleClick = () => {
+  const inputRef = useRef<HTMLInputElement>(null)
+  
+  const handleDoubleInput = (value: string) => {
     setIsEditing(true);
-  };
-
-  const handleInputChange = ({
-    target,
-  }: React.ChangeEvent<HTMLInputElement>) => {
-    setEditedTitle(target.value);
-  };
-
-  // const swapTodoInArray = (array: Todo[], todo: Todo) => {
-  //   return array.map((item) => {
-  //     return item.id === todo.id ? todo : item;
-  //   });
-  // };
-
-  const handleFormSubmit = async (e: React.FormEvent<HTMLFormElement> |
-  React.FocusEvent<HTMLInputElement, Element>) => {
-    if ('preventDefault' in e) {
-      e.preventDefault();
-    }
-
-    try {
-      const copyTodo = { ...todo, title: editedTitle };
-
-      // if (editedTitle === '') {
-      //   deleteTodo(todo.id);
-      // }
-
-      if (todo.title !== editedTitle && editedTitle) {
-        const withLoading = swapTodoInArray(alwaysGreenTodos, {
-          ...todo, loading: true,
-        });
-
-        const updatedTodosWithLoading = handleActions(withLoading, filter);
-
-        setAlwaysGreenTodos(withLoading);
-        setTodos(updatedTodosWithLoading);
-
-        const resp = await updateTodo(copyTodo.id, copyTodo);
-
-        const result = swapTodoInArray(alwaysGreenTodos, resp);
-
-        const todosWhichAreRendered = handleActions(result, filter);
-
-        setAlwaysGreenTodos(result);
-        setTodos(todosWhichAreRendered);
+    
+    setTimeout(() => {
+      if (inputRef.current) {
+        inputRef.current.value = value;
       }
-    } catch (error) {
-      setErrorMessage('Unable to update a todo');
-      setTimeout(() => {
-        setErrorMessage('');
-      }, 5000);
-    }
-
-    setIsEditing(false);
+    }, 5)
   };
+  
 
   const handleKeyUp = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Escape') {
@@ -88,22 +36,30 @@ export const TodoComponent: React.FC<TodoType> = ({ todo }) => {
     }
   };
 
-  useEffect(() => {
-    if (isEditing) {
-      inputRef.current?.focus();
-    }
-  }, [isEditing]);
+  const handleBlur = (e: React.FocusEvent<HTMLInputElement, Element>) => {
+    updateTodo(e.target.value)
 
+    setIsEditing(false)
+    console.log('here is fucking blur');
+    
+  }
 
-
+  const updateTodo = (value: string) => {
+      if (value && value !== todo.title) {
+            setTodos((prev) => prev.map((item) => item.todoId === todo.todoId ? ({
+              ...item,
+              title: value,
+            }) : item))
+          }  
+}
 
   return (
-    <div className={`todo ${todo.completed ? 'completed' : ''}`}>
+    <div className={`todo ${todo?.completed ? 'completed' : ''}`}>
       <label
         className="todo__status-label"
         onClick={(e) => {
           if (e.target === e.currentTarget) {
-            handleCompleted(todo.todoId);
+            handleCompleted(todo?.todoId);
           }
         }}
       >
@@ -111,31 +67,40 @@ export const TodoComponent: React.FC<TodoType> = ({ todo }) => {
       </label>
 
       {isEditing ? (
-        <form action="" onSubmit={handleFormSubmit}>
+        <form onSubmit={async(e) => {
+          e.preventDefault()
+          const instanseForm = new FormData(e.target as HTMLFormElement) 
+          const inputValue = instanseForm.get('todoTitle')
+
+          updateTodo(inputValue as string)
+          setIsEditing(false)
+        }}>
           <input
             className="todo__title-field"
             type="text"
+            name="todoTitle"
+            id='aditable_input'
             placeholder="Empty todo will be deleted"
-            value={editedTitle}
-            onChange={handleInputChange}
-            onBlur={handleFormSubmit}
+            autoFocus
+            onBlur={handleBlur}
             ref={inputRef}
             onKeyUp={handleKeyUp}
           />
         </form>
       ) : (
-        <span className="todo__title" onDoubleClick={handleDoubleClick}>
-          {todo.title}
+          <span className="todo__title"
+            onDoubleClick={() => handleDoubleInput(todo.title)}
+          onClick={() => console.log('click on span')}
+          >
+          {todo?.title}
         </span>
       )}
 
-      {/* Remove button appears only on hover */}
       {!isEditing && (
         <button
           onClick={(e) => {
             e.preventDefault();
-            deleteTodo(todo.todoId);
-            // deleteTodo()
+            deleteTodo(todo?.todoId);
           }}
           type="button"
           className="todo__remove"
@@ -143,17 +108,6 @@ export const TodoComponent: React.FC<TodoType> = ({ todo }) => {
           ×
         </button>
       )}
-      {/*
-            {/* overlay will cover the todo while it is being updated */}
-
-      <div
-        className={`${
-          todo.loading ? 'todo modal overlay is-active' : 'modal overlay'
-        }`}
-      >
-        <div className="modal-background has-background-white-ter" />
-        <div className="loader" />
-      </div>
     </div>
   );
 };

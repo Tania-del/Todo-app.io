@@ -26,6 +26,6 @@ export const useLocaleStorage = <T extends any>(key: string, defaultValue?: T ):
         getValue()        
     },[])
 
-    return [value, setValue]
+    return [value as T, setValue]
 }
 

@@ -4,11 +4,11 @@ import { TodoComponent } from './TodoComponent';
 
 
 export const TodoList = () => {
-  const { todos } = useContext(TodoContext);
-    
+  const { handleFilter, filter } = useContext(TodoContext);
+
   return (
     <section className="todoapp__main">
-      {todos?.map((todo) => (
+      {handleFilter(filter)?.map((todo) => (
         <TodoComponent key={todo.todoId} todo={todo} />
       ))}
     </section>
