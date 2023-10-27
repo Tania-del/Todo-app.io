@@ -4,6 +4,7 @@ import { TodoList } from './components/TodoList';
 import { TodoContext } from './context/TodoContext';
 import { clsx } from 'clsx';
 
+
 export const App: React.FC = () => {
   const {
     toggled,
@@ -14,8 +15,10 @@ export const App: React.FC = () => {
     isAnyCompleted,
     clearCompleted,
     todos,
+    errorMessage,
   } = useContext(TodoContext);
-
+ 
+  
   return (
     <div className='todoapp'>
       <h1 className="todoapp__title">todos</h1>
@@ -56,14 +59,14 @@ export const App: React.FC = () => {
 
             <a
               href="#/active"
-              onClick={() => handleFilter('active')}
+                onClick={() => handleFilter('active')}
               className={`filter__link ${
                 filter === 'active' ? 'selected' : ''
               }`}
             >
               Active
             </a>
-
+          
             <a
               href="#/completed"
               onClick={() => handleFilter('completed')}
@@ -85,6 +88,10 @@ export const App: React.FC = () => {
         </footer>
         }
       </div>
+
+      {errorMessage  && 
+        <div style={{ margin: '20px', color: 'red', fontSize: '20px' }}>{errorMessage}</div>
+      }
     </div>
     
   );

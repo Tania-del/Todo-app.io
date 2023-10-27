@@ -14,6 +14,8 @@ interface ITodoContext {
   filter: FilterType;
   isAnyCompleted: boolean;
   clearCompleted: () => void;
+  errorMessage: string;
+  setErrorMessage: React.Dispatch<React.SetStateAction<string>>
 }
 
 export const TodoContext = createContext<ITodoContext>({
@@ -28,7 +30,8 @@ export const TodoContext = createContext<ITodoContext>({
   clearCompleted: () => {},
   toggled: false,
   setToggle: () => { },
-  
+  errorMessage: '',
+  setErrorMessage: () => '',
 });
 
 type FilterType = 'all' | 'completed' | 'active';
@@ -48,6 +51,7 @@ export const TodoProvider = ({ children }: { children: ReactNode }) => {
   const [todos, setTodos] = useLocaleStorage<Todo[]>('todos', [])
   const [toggled, setToggle] = useLocaleStorage('toggle', true);
   const [filter, setFilter] = useState<FilterType>('all');  
+  const [errorMessage, setErrorMessage] = useState<string>('')
   
   const deleteTodo = (id: Todo['todoId']) => {
     setTodos((todos) => todos.filter((item) => item?.todoId !== id))
@@ -68,7 +72,6 @@ export const TodoProvider = ({ children }: { children: ReactNode }) => {
     return filteredByType;
   };
 
-
   const clearCompleted = () => {
     setTodos((todos) => todos.filter((todo) => !todo.completed))
   }
@@ -87,9 +90,12 @@ export const TodoProvider = ({ children }: { children: ReactNode }) => {
         filter,
         isAnyCompleted: todos.some((item) => item.completed),
         clearCompleted,
+        setErrorMessage,
+        errorMessage,
       }}
     >
       {children}
     </TodoContext.Provider>
   );
 };
+

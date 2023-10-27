@@ -21,9 +21,9 @@ export const useLocaleStorage = <T extends any>(key: string, defaultValue?: T ):
             _setValue(JSON.parse(result))
         }
     }      
-
+    
     useEffect(() => {
-        getValue()        
+        getValue()                
     },[])
 
     return [value as T, setValue]

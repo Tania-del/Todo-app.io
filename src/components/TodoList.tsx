@@ -8,7 +8,7 @@ export const TodoList = () => {
 
   return (
     <section className="todoapp__main">
-      {handleFilter(filter)?.map((todo) => (
+      {handleFilter(filter).map((todo) => (
         <TodoComponent key={todo.todoId} todo={todo} />
       ))}
     </section>

@@ -1,8 +1,9 @@
 import {
-  useContext, useState, useRef
+  useContext, useState, useRef,
 } from 'react';
 import { TodoContext } from '../context/TodoContext';
 import { Todo } from '../types/Todo';
+import { useConfirm } from '../hooks/useConfirm';
 
 type TodoType = {
   todo: Todo;
@@ -10,7 +11,12 @@ type TodoType = {
 
 export const TodoComponent: React.FC<TodoType> = ({ todo }) => {
   const [isEditing, setIsEditing] = useState(false);
-  
+
+  const [Dialog, confirmDelete] = useConfirm(
+    'Empty string will be delete from list',
+    'Are you sure, you want to delete this?'
+  )
+
   const {
     handleCompleted,
     deleteTodo,
@@ -18,10 +24,13 @@ export const TodoComponent: React.FC<TodoType> = ({ todo }) => {
   } = useContext(TodoContext);
 
   const inputRef = useRef<HTMLInputElement>(null)
+  const prevTitle = useRef<string>('')
   
   const handleDoubleInput = (value: string) => {
     setIsEditing(true);
-    
+
+    prevTitle.current = value;
+        
     setTimeout(() => {
       if (inputRef.current) {
         inputRef.current.value = value;
@@ -29,19 +38,20 @@ export const TodoComponent: React.FC<TodoType> = ({ todo }) => {
     }, 5)
   };
   
-
   const handleKeyUp = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Escape') {
       setIsEditing(false);
     }
   };
 
-  const handleBlur = (e: React.FocusEvent<HTMLInputElement, Element>) => {
-    updateTodo(e.target.value)
-
-    setIsEditing(false)
-    console.log('here is fucking blur');
-    
+  const handleBlur = ({ target: { value } }: React.FocusEvent<HTMLInputElement, Element>) => {
+    if (!value) {      
+      return handleDelete()
+    }
+        
+    updateTodo(value)
+    setIsEditing(false)   
+    return;
   }
 
   const updateTodo = (value: string) => {
@@ -53,7 +63,20 @@ export const TodoComponent: React.FC<TodoType> = ({ todo }) => {
           }  
 }
 
+  const handleDelete = async () => {
+    const answer = await confirmDelete()
+
+    if (answer === true) {
+      deleteTodo(todo.todoId)
+    } else {
+      if (inputRef.current) {
+        inputRef.current.value = prevTitle.current;
+      }
+    }
+}
+  
   return (
+    <>
     <div className={`todo ${todo?.completed ? 'completed' : ''}`}>
       <label
         className="todo__status-label"
@@ -66,16 +89,14 @@ export const TodoComponent: React.FC<TodoType> = ({ todo }) => {
         <input type="checkbox" className="todo__status" />
       </label>
 
-      {isEditing ? (
+       <Dialog />
+        {isEditing ? (
         <form onSubmit={async(e) => {
-          e.preventDefault()
-          const instanseForm = new FormData(e.target as HTMLFormElement) 
-          const inputValue = instanseForm.get('todoTitle')
-
-          updateTodo(inputValue as string)
-          setIsEditing(false)
+            e.preventDefault()
+            inputRef.current?.blur()
         }}>
-          <input
+          
+            <input
             className="todo__title-field"
             type="text"
             name="todoTitle"
@@ -85,12 +106,12 @@ export const TodoComponent: React.FC<TodoType> = ({ todo }) => {
             onBlur={handleBlur}
             ref={inputRef}
             onKeyUp={handleKeyUp}
-          />
-        </form>
+            />
+          </form>
+          
       ) : (
           <span className="todo__title"
             onDoubleClick={() => handleDoubleInput(todo.title)}
-          onClick={() => console.log('click on span')}
           >
           {todo?.title}
         </span>
@@ -108,6 +129,7 @@ export const TodoComponent: React.FC<TodoType> = ({ todo }) => {
           ×
         </button>
       )}
-    </div>
+      </div>
+        </>
   );
 };
